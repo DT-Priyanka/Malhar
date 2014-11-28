@@ -1,12 +1,13 @@
 package com.datatorrent.contrib.solr;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrServer;
 
 import com.datatorrent.lib.db.Connectable;
 
-public abstract class SolrServerConnector implements Connectable
+public abstract class SolrServerConnector implements Connectable, Closeable
 {
   protected SolrServer solrServer;
 
@@ -32,6 +33,14 @@ public abstract class SolrServerConnector implements Connectable
   public boolean isConnected()
   {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void close() throws IOException
+  {
+    if (solrServer != null) {
+      solrServer.shutdown();
+    }
   }
 
 }
