@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
@@ -51,21 +52,17 @@ public abstract class AbstractSolrOutputOperator<T> implements Operator
   private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
   private static int HOLDING_BUFFER_SIZE = DEFAULT_BUFFER_SIZE;
   private transient Queue<SolrInputDocument> docBuffer;
-  private transient long lastProcessedWindow;
-  private transient long currentWindow;
   @InputPortFieldAnnotation
   public final transient DefaultInputPort<T> inputPort = new DefaultInputPort<T>() {
     @Override
     public void process(T tuple)
     {
-      if (currentWindow > lastProcessedWindow) {
-        if (docBuffer.size() >= HOLDING_BUFFER_SIZE) {
-          processTuples();
-        }
-        SolrInputDocument solrDocument = convertTuple(tuple);
-        if (solrDocument != null) {
-          docBuffer.add(solrDocument);
-        }
+      if (docBuffer.size() >= HOLDING_BUFFER_SIZE) {
+        processTuples();
+      }
+      SolrInputDocument solrDocument = convertTuple(tuple);
+      if (solrDocument != null) {
+        docBuffer.add(solrDocument);
       }
     }
   };
@@ -78,8 +75,7 @@ public abstract class AbstractSolrOutputOperator<T> implements Operator
   /**
    * Converts the object into Solr document format
    * 
-   * @param object
-   *          to be stored to Solr Server
+   * @param object to be stored to Solr Server
    * @return
    */
   public abstract SolrInputDocument convertTuple(T tuple);
@@ -87,8 +83,6 @@ public abstract class AbstractSolrOutputOperator<T> implements Operator
   @Override
   public void setup(OperatorContext context)
   {
-    lastProcessedWindow = -1;
-    currentWindow = 0;
     docBuffer = new ArrayBlockingQueue<SolrInputDocument>(HOLDING_BUFFER_SIZE);
     try {
       initializeSolrServerConnector();
@@ -108,14 +102,12 @@ public abstract class AbstractSolrOutputOperator<T> implements Operator
   @Override
   public void beginWindow(long windowId)
   {
-    currentWindow = windowId;
   }
 
   @Override
   public void endWindow()
   {
     processTuples();
-    lastProcessedWindow = currentWindow;
   }
 
   private void processTuples()
@@ -123,7 +115,10 @@ public abstract class AbstractSolrOutputOperator<T> implements Operator
     try {
       SolrServer solrServer = solrServerConnector.getSolrServer();
       solrServer.add(docBuffer);
-      solrServer.commit();
+      UpdateResponse response = solrServer.commit();
+      if (response.getStatus() != 0) {
+        throw new RuntimeException("Unable to add data to solr server");
+      }
       logger.debug("Submitted documents batch of size " + docBuffer.size() + " to Solr server.");
       docBuffer.clear();
     } catch (SolrServerException ex) {

@@ -23,7 +23,9 @@ public abstract class SolrServerConnector implements Connectable
   @Override
   public void disconnect() throws IOException
   {
-    solrServer.shutdown();
+    if (solrServer != null) {
+      solrServer.shutdown();
+    }
   }
 
   @Override

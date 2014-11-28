@@ -26,7 +26,7 @@
     <module>uniquecount</module>
     <module>visualdata</module>
     <module>distributedistinct</module>
-    <module>Solr</module>
+    <module>solr</module>
   </modules>
 
 </project>
