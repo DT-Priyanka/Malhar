@@ -227,8 +227,6 @@
    <dynamicField name="*_td" type="tdouble" indexed="true" stored="true"/>
    <dynamicField name="*_tdt" type="tdate" indexed="true" stored="true"/>
 
-   <dynamicField name="*_c" type="currency" indexed="true" stored="true"/>
-
    <dynamicField name="ignored_*" type="ignored" multiValued="true"/>
    <dynamicField name="attr_*" type="text_general" indexed="true" stored="true" multiValued="true"/>
 
@@ -273,9 +271,6 @@
    <copyField source="features" dest="text"/>
    <copyField source="includes" dest="text"/>
    <copyField source="manu" dest="manu_exact"/>
-
-   <!-- Copy the price into a currency enabled field (default USD) -->
-   <copyField source="price" dest="price_c"/>
 
    <!-- Text fields from SolrCell to search by default in our catch-all field -->
    <copyField source="title" dest="text"/>
@@ -696,20 +691,6 @@
      relevancy. -->
     <fieldType name="bbox" class="solr.BBoxField" geo="true" units="degrees" numberType="_bbox_coord"/>
     <fieldType name="_bbox_coord" class="solr.TrieDoubleField" precisionStep="8" docValues="true" stored="false"/>
-
-   <!-- Money/currency field type. See http://wiki.apache.org/solr/MoneyFieldType
-        Parameters:
-          defaultCurrency: Specifies the default currency if none specified. Defaults to "USD"
-          precisionStep:   Specifies the precisionStep for the TrieLong field used for the amount
-          providerClass:   Lets you plug in other exchange provider backend:
-                           solr.FileExchangeRateProvider is the default and takes one parameter:
-                             currencyConfig: name of an xml file holding exchange rates
-                           solr.OpenExchangeRatesOrgProvider uses rates from openexchangerates.org:
-                             ratesFileLocation: URL or path to rates JSON file (default latest.json on the web)
-                             refreshInterval: Number of minutes between each rates fetch (default: 1440, min: 60)
-   -->
-    <fieldType name="currency" class="solr.CurrencyField" precisionStep="8" defaultCurrency="USD" currencyConfig="currency.xml"/>
-             
 
 
   <!-- Similarity is the scoring routine for each document vs. a query.
