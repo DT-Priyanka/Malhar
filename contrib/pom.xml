@@ -548,6 +548,7 @@
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-core</artifactId>
       <version>4.10.1</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
