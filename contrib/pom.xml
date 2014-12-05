@@ -540,7 +540,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.solr</groupId>
-      <artifactId> solr-test-framework</artifactId>
+      <artifactId>solr-test-framework</artifactId>
       <version>4.10.1</version>
       <scope>test</scope>
     </dependency>
