@@ -10,18 +10,12 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.servlet.SolrRequestParsers;
 
 import com.datatorrent.contrib.solr.AbstractSolrInputOperator;
-import com.datatorrent.contrib.solr.HttpSolrServerConnector;
+import com.datatorrent.contrib.solr.SolrServerConnector;
 
-public class SolrInputOperator extends AbstractSolrInputOperator<ProductInfo>
+public class SolrInputOperator extends AbstractSolrInputOperator<ProductInfo, SolrServerConnector>
 {
   private static final Calendar calendar = new GregorianCalendar();
   private static Date lastQueryTime = new Date(-1L);
-
-  @Override
-  public void initializeSolrServerConnector()
-  {
-    solrServerConnector = new HttpSolrServerConnector();
-  }
 
   @Override
   protected void emitTuple(SolrDocument document)

@@ -8,7 +8,7 @@ import java.util.GregorianCalendar;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.datatorrent.contrib.solr.AbstractSolrOutputOperator;
-import com.datatorrent.contrib.solr.HttpSolrServerConnector;
+import com.datatorrent.contrib.solr.SolrServerConnector;
 
 /**
  * Properties:<br>
@@ -16,13 +16,8 @@ import com.datatorrent.contrib.solr.HttpSolrServerConnector;
  * <b>bufferSize</b>: Size of holding buffer<br>
  * <br>
  */
-public class SolrOutputOperator extends AbstractSolrOutputOperator<ProductInfo>
+public class SolrOutputOperator extends AbstractSolrOutputOperator<ProductInfo, SolrServerConnector>
 {
-  @Override
-  public void initializeSolrServerConnector()
-  {
-    solrServerConnector = new HttpSolrServerConnector();
-  }
 
   @Override
   public SolrInputDocument convertTuple(ProductInfo prodInfo)

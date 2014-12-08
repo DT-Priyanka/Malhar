@@ -18,7 +18,7 @@ public class SolrApplication implements StreamingApplication
     SolrOutputOperator outputOpr = dag.addOperator("SolrOutputOperator", new SolrOutputOperator());
     outputOpr.setSolrServerConnector(new HttpSolrServerConnector());
 
-    dag.addStream("prodInfoStream", inputOpr.outputPort, outputOpr.inputPort).setLocality(Locality.CONTAINER_LOCAL);
+    dag.addStream("prodInfoStream", inputOpr.outputPort, outputOpr.input).setLocality(Locality.CONTAINER_LOCAL);
 
   }
 
