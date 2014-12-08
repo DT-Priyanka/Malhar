@@ -16,7 +16,7 @@ import com.datatorrent.lib.testbench.CollectorTestSink;
 
 public class SolrInputOperatorTest extends SolrOperatorTest
 {
-  private AbstractSolrInputOperator<SolrDocument> inputOperator;
+  private AbstractSolrInputOperator<SolrDocument, SolrServerConnector> inputOperator;
   private CollectorTestSink testSink;
 
   @Before
@@ -24,7 +24,15 @@ public class SolrInputOperatorTest extends SolrOperatorTest
   public void setUp() throws Exception
   {
     super.setUp();
+    SolrServerConnector solrServerConnector = new SolrServerConnector() {
+      @Override
+      public void connect()
+      {
+        this.solrServer = SolrInputOperatorTest.this.solrServer;
+      }
+    };
     inputOperator = new SolrInputOperator();
+    inputOperator.setSolrServerConnector(solrServerConnector);
     inputOperator.setup(null);
     testSink = new CollectorTestSink();
     inputOperator.outputPort.setSink(testSink);
@@ -81,7 +89,7 @@ public class SolrInputOperatorTest extends SolrOperatorTest
     server.commit();
   }
 
-  class SolrInputOperator extends AbstractSolrInputOperator<SolrDocument>
+  class SolrInputOperator extends AbstractSolrInputOperator<SolrDocument, SolrServerConnector>
   {
 
     @Override
@@ -95,18 +103,6 @@ public class SolrInputOperatorTest extends SolrOperatorTest
     protected void emitTuple(SolrDocument document)
     {
       outputPort.emit(document);
-    }
-
-    @Override
-    public void initializeSolrServerConnector()
-    {
-      super.solrServerConnector = new SolrServerConnector() {
-        @Override
-        public void connect()
-        {
-          this.solrServer = SolrInputOperatorTest.this.solrServer;
-        }
-      };
     }
 
   }

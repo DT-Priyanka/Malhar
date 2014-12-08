@@ -8,13 +8,22 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.solr.common.SolrInputDocument;
 
-public class SolrOutputOperator extends AbstractSolrOutputOperator<Map<String, Object>>
+import com.datatorrent.api.Context.OperatorContext;
+
+/**
+ * Default Implementation of AbstractSolrOutputOperator. Accepts maps and puts key values in SolrInputDocument format.
+ * Map keys must be added to schema.xml <br>
+ * <br>
+ * Set solrServerType in properties to instantiate appropriate solr server instance.
+ */
+public class SolrOutputOperator extends AbstractSolrOutputOperator<Map<String, Object>, SolrServerConnector>
 {
+
   private static final String DEFAULT_SERVER_TYPE = "HttpSolrServer";
   private String solrServerType = DEFAULT_SERVER_TYPE;
 
   @Override
-  public void initializeSolrServerConnector()
+  public void setup(OperatorContext context)
   {
     if ("HttpSolrServer".equals(solrServerType)) {
       solrServerConnector = new HttpSolrServerConnector();
@@ -29,6 +38,10 @@ public class SolrOutputOperator extends AbstractSolrOutputOperator<Map<String, O
       solrServerConnector = new LBHttpSolrServerConnector();
       ((LBHttpSolrServerConnector) solrServerConnector).setHttpClient(client);
     }
+
+    solrServerConnector = new HttpSolrServerConnector();
+    super.setSolrServerConnector(solrServerConnector);
+    super.setup(context);
   }
 
   @Override
@@ -48,6 +61,7 @@ public class SolrOutputOperator extends AbstractSolrOutputOperator<Map<String, O
     return solrServerType;
   }
 
+  // set this property in dt-site.xml
   public void setSolrServerType(String solrServerType)
   {
     this.solrServerType = solrServerType;

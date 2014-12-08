@@ -4,6 +4,13 @@ import java.io.IOException;
 
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 
+/**
+ * Initializes CloudServer instance of Solr Server.<br>
+ * <br>
+ * Properties:<br>
+ * zookeeperHost - The client endpoint of the zookeeper quorum containing the cloud state, in the form HOST:PORT<br>
+ * updateToLeader - sends updates only to leaders - defaults to true
+ */
 public class CloudSolrServerConnector extends SolrServerConnector
 {
 

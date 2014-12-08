@@ -10,7 +10,14 @@ import org.apache.solr.servlet.SolrRequestParsers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SolrInputOperator extends AbstractSolrInputOperator<Map<String, Object>>
+import com.datatorrent.api.Context.OperatorContext;
+
+/**
+ * Default Implementation of AbstractSolrInputOperator. Reads query from properties file <br>
+ * <br>
+ * Set solrServerType in properties to instantiate appropriate solr server instance.
+ */
+public class SolrInputOperator extends AbstractSolrInputOperator<Map<String, Object>, SolrServerConnector>
 {
   private static final Logger logger = LoggerFactory.getLogger(SolrInputOperator.class);
   private static final String DEFAULT_SERVER_TYPE = "HttpSolrServer";
@@ -18,7 +25,7 @@ public class SolrInputOperator extends AbstractSolrInputOperator<Map<String, Obj
   private String solrQuery;
 
   @Override
-  public void initializeSolrServerConnector()
+  public void setup(OperatorContext context)
   {
     if ("HttpSolrServer".equals(solrServerType)) {
       solrServerConnector = new HttpSolrServerConnector();
@@ -33,6 +40,10 @@ public class SolrInputOperator extends AbstractSolrInputOperator<Map<String, Obj
       solrServerConnector = new LBHttpSolrServerConnector();
       ((LBHttpSolrServerConnector) solrServerConnector).setHttpClient(client);
     }
+
+    solrServerConnector = new HttpSolrServerConnector();
+    super.setSolrServerConnector(solrServerConnector);
+    super.setup(context);
   }
 
   @Override

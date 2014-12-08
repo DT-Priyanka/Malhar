@@ -14,17 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datatorrent.api.Context.OperatorContext;
-import com.datatorrent.api.DefaultOutputPort;
-import com.datatorrent.api.InputOperator;
+import com.datatorrent.lib.db.AbstractStoreInputOperator;
 
 /**
  * This is a base implementation of a Solr input operator, which consumes data from solr search operations.&nbsp;
- * Subclasses should implement the methods initializeSolrServerConnector, getQueryParams, emitTuple for emitting tuples
- * to downstream operators.
+ * Subclasses should implement the methods getQueryParams, emitTuple for emitting tuples to downstream operators.
  * <p>
  * Compile time checks:<br>
- * Class derived from this has to implement the abstract method initializeSolrServerConnector(), getQueryParams() and
- * emitTuple() <br>
+ * Class derived from this has to implement the abstract method getQueryParams() and emitTuple() <br>
  * <br>
  * Run time checks:<br>
  * None<br>
@@ -45,12 +42,11 @@ import com.datatorrent.api.InputOperator;
  * @since 2.0.0
  */
 
-public abstract class AbstractSolrInputOperator<T> implements InputOperator
+public abstract class AbstractSolrInputOperator<T, S extends SolrServerConnector> extends AbstractStoreInputOperator<T, S>
 {
   private static final Logger logger = LoggerFactory.getLogger(AbstractSolrInputOperator.class);
-  public final transient DefaultOutputPort<T> outputPort = new DefaultOutputPort<T>();
   @NotNull
-  protected SolrServerConnector solrServerConnector;
+  protected S solrServerConnector;
   private SolrDocument lastEmittedTuple;
   private long lastEmittedTimeStamp;
 
@@ -68,7 +64,6 @@ public abstract class AbstractSolrInputOperator<T> implements InputOperator
   public void setup(OperatorContext context)
   {
     try {
-      initializeSolrServerConnector();
       solrServerConnector.connect();
     } catch (IOException ex) {
       throw new RuntimeException("Unable to connect to Solr Server", ex);
@@ -101,7 +96,7 @@ public abstract class AbstractSolrInputOperator<T> implements InputOperator
     return solrServerConnector;
   }
 
-  public void setSolrServerConnector(SolrServerConnector solrServerConnector)
+  public void setSolrServerConnector(S solrServerConnector)
   {
     this.solrServerConnector = solrServerConnector;
   }
@@ -129,7 +124,6 @@ public abstract class AbstractSolrInputOperator<T> implements InputOperator
   /**
    * Initialize SolrServer object
    */
-  public abstract void initializeSolrServerConnector();
 
   protected abstract void emitTuple(SolrDocument document);
 

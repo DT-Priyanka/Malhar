@@ -15,16 +15,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datatorrent.api.Context.OperatorContext;
-import com.datatorrent.api.DefaultInputPort;
-import com.datatorrent.api.Operator;
-import com.datatorrent.api.annotation.InputPortFieldAnnotation;
+import com.datatorrent.lib.db.AbstractStoreOutputOperator;
+import com.datatorrent.lib.db.Connectable;
 
 /**
  * This is a base implementation of a Solr output operator, which adds data to Solr Server.&nbsp; Subclasses should
- * implement the methods initializeSolrServerConnector and getTuple.
+ * implement the methods convertTuple.
  * <p>
  * Compile time checks:<br>
- * Class derived from this has to implement the abstract method initializeSolrServerConnector() and getTuple() <br>
+ * Class derived from this has to implement the abstract method convertTuple() <br>
  * <br>
  * Run time checks:<br>
  * None<br>
@@ -44,33 +43,26 @@ import com.datatorrent.api.annotation.InputPortFieldAnnotation;
  *
  * @since 2.0.0
  */
-public abstract class AbstractSolrOutputOperator<T> implements Operator
+public abstract class AbstractSolrOutputOperator<T, S extends Connectable> extends AbstractStoreOutputOperator<T, S>
 {
   private static final Logger logger = LoggerFactory.getLogger(AbstractSolrOutputOperator.class);
   @NotNull
   protected SolrServerConnector solrServerConnector;
   private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-  private static int HOLDING_BUFFER_SIZE = DEFAULT_BUFFER_SIZE;
+  private int bufferSize = DEFAULT_BUFFER_SIZE;
   private transient Queue<SolrInputDocument> docBuffer;
-  @InputPortFieldAnnotation
-  public final transient DefaultInputPort<T> inputPort = new DefaultInputPort<T>() {
-    @Override
-    public void process(T tuple)
-    {
-      if (docBuffer.size() >= HOLDING_BUFFER_SIZE) {
-        processTuples();
-      }
-      SolrInputDocument solrDocument = convertTuple(tuple);
-      if (solrDocument != null) {
-        docBuffer.add(solrDocument);
-      }
+
+  @Override
+  public void processTuple(T tuple)
+  {
+    if (docBuffer.size() >= bufferSize) {
+      processTuples();
+    }
+    SolrInputDocument solrDocument = convertTuple(tuple);
+    if (solrDocument != null) {
+      docBuffer.add(solrDocument);
     }
   };
-
-  /**
-   * Initialize SolrServer object
-   */
-  public abstract void initializeSolrServerConnector();
 
   /**
    * Converts the object into Solr document format
@@ -83,9 +75,8 @@ public abstract class AbstractSolrOutputOperator<T> implements Operator
   @Override
   public void setup(OperatorContext context)
   {
-    docBuffer = new ArrayBlockingQueue<SolrInputDocument>(HOLDING_BUFFER_SIZE);
+    docBuffer = new ArrayBlockingQueue<SolrInputDocument>(bufferSize);
     try {
-      initializeSolrServerConnector();
       solrServerConnector.connect();
     } catch (Exception ex) {
       throw new RuntimeException("Unable to connect to Solr server", ex);
@@ -130,9 +121,14 @@ public abstract class AbstractSolrOutputOperator<T> implements Operator
     }
   }
 
+  public int getBufferSize()
+  {
+    return bufferSize;
+  }
+
   public void setBufferSize(int bufferSize)
   {
-    HOLDING_BUFFER_SIZE = bufferSize;
+    this.bufferSize = bufferSize;
   }
 
   public SolrServerConnector getSolrServerConnector()

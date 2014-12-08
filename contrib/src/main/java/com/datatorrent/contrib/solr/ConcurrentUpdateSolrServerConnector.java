@@ -6,6 +6,15 @@ import java.util.concurrent.ExecutorService;
 import org.apache.http.client.HttpClient;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 
+/**
+ * Initializes ConcurrentUpdateServer instance of Solr Server.<br>
+ * <br>
+ * properties:<br>
+ * solrServerURL - The Solr server URL<br>
+ * queueSize - The buffer size before the documents are sent to the server <br>
+ * threadCount - The number of background threads used to empty the queue<br>
+ * httpClient - HttpClient instance
+ */
 public class ConcurrentUpdateSolrServerConnector extends SolrServerConnector
 {
   private static final int DEFAULT_THREAD_COUNT = 5;

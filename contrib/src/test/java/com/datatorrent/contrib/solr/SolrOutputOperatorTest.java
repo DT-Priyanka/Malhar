@@ -13,14 +13,22 @@ import com.datatorrent.lib.helper.OperatorContextTestHelper;
 
 public class SolrOutputOperatorTest extends SolrOperatorTest
 {
-  private AbstractSolrOutputOperator<SolrInputDocument> outputOperator;
+  private AbstractSolrOutputOperator<SolrInputDocument, SolrServerConnector> outputOperator;
 
   @Override
   @Before
   public void setUp() throws Exception
   {
     super.setUp();
+    SolrServerConnector solrServerConnector = new SolrServerConnector() {
+      @Override
+      public void connect()
+      {
+        this.solrServer = SolrOutputOperatorTest.this.solrServer;
+      }
+    };
     outputOperator = new SolrOutputOperator();
+    outputOperator.setSolrServerConnector(solrServerConnector);
     outputOperator.setup(null);
   }
 
@@ -32,7 +40,7 @@ public class SolrOutputOperatorTest extends SolrOperatorTest
     SolrInputDocument doc = new SolrInputDocument();
     outputOperator.setup(new OperatorContextTestHelper.TestIdOperatorContext(111));
     outputOperator.beginWindow(1L);
-    outputOperator.inputPort.process(doc);
+    outputOperator.input.process(doc);
     outputOperator.endWindow();
     fail("Should throw an exception as server is unreachable.");
   }
@@ -45,7 +53,7 @@ public class SolrOutputOperatorTest extends SolrOperatorTest
     outputOperator.setup(new OperatorContextTestHelper.TestIdOperatorContext(111));
     outputOperator.beginWindow(1L);
     for (SolrInputDocument doc : docs) {
-      outputOperator.inputPort.process(doc);
+      outputOperator.input.process(doc);
     }
     outputOperator.endWindow();
 
@@ -53,7 +61,7 @@ public class SolrOutputOperatorTest extends SolrOperatorTest
     assertEquals("Mismatch in documents count in Solr Server", docs.size(), queryResponse.getResults().size());
   }
 
-  class SolrOutputOperator extends AbstractSolrOutputOperator<SolrInputDocument>
+  class SolrOutputOperator extends AbstractSolrOutputOperator<SolrInputDocument, SolrServerConnector>
   {
 
     @Override
@@ -67,19 +75,6 @@ public class SolrOutputOperatorTest extends SolrOperatorTest
     {
       return tuple;
     }
-
-    @Override
-    public void initializeSolrServerConnector()
-    {
-      super.solrServerConnector = new SolrServerConnector() {
-        @Override
-        public void connect()
-        {
-          this.solrServer = SolrOutputOperatorTest.this.solrServer;
-        }
-      };
-    }
-
   }
 
 }

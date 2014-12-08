@@ -6,6 +6,14 @@ import org.apache.http.client.HttpClient;
 import org.apache.solr.client.solrj.ResponseParser;
 import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
 
+/**
+ * Initializes LBHttpSolrServer instance of Solr Server.<br>
+ * <br>
+ * properties:<br>
+ * solrServerUrls - Urls of solr Server
+ * httpClient - http client instance
+ * responseParser - ResponseParser instance
+ */
 public class LBHttpSolrServerConnector extends SolrServerConnector
 {
   private String[] solrServerUrls;

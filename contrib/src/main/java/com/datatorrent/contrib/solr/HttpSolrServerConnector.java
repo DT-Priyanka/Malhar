@@ -2,6 +2,12 @@ package com.datatorrent.contrib.solr;
 
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 
+/**
+ * Initializes HttpSolrServer instance of Solr Server.<br>
+ * <br>
+ * properties:<br>
+ * baseURL - The URL of the Solr server.
+ */
 public class HttpSolrServerConnector extends SolrServerConnector
 {
   private static final String DEFAULT_SOLR_SERVER_URL = "http://localhost:8983/solr";
