@@ -83,6 +83,7 @@ public abstract class AbstractFileInputOperator<T> implements InputOperator, Par
   @NotNull
   protected DirectoryScanner scanner = new DirectoryScanner();
   protected int scanIntervalMillis = 5000;
+  protected boolean scanNowFlag = false;
   protected int offset;
   protected String currentFile;
   protected Set<String> processedFiles = new HashSet<String>();
@@ -340,6 +341,22 @@ public abstract class AbstractFileInputOperator<T> implements InputOperator, Par
   public void setScanIntervalMillis(int scanIntervalMillis)
   {
     this.scanIntervalMillis = scanIntervalMillis;
+  }
+
+  /**
+   * @return Returns if scan now flag is set
+   */
+  public boolean isScanNowFlag()
+  {
+    return scanNowFlag;
+  }
+
+  /**
+   * Sets trigger to scan input directory
+   */
+  public void setScanNowFlag(boolean scanNowFlag)
+  {
+    this.scanNowFlag = scanNowFlag;
   }
 
   /**
@@ -678,17 +695,24 @@ public abstract class AbstractFileInputOperator<T> implements InputOperator, Par
    */
   protected void scanDirectory()
   {
-    if(System.currentTimeMillis() - scanIntervalMillis >= lastScanMillis) {
-      Set<Path> newPaths = scanner.scan(fs, filePath, processedFiles);
-
-      for(Path newPath : newPaths) {
-        String newPathString = newPath.toString();
-        pendingFiles.add(newPathString);
-        processedFiles.add(newPathString);
-        localProcessedFileCount.increment();
-      }
-
+    if (scanNowFlag) {
+      scanForNewFiles();
+      scanNowFlag = false;
+    } else if (System.currentTimeMillis() - scanIntervalMillis >= lastScanMillis) {
+      scanForNewFiles();
       lastScanMillis = System.currentTimeMillis();
+    }
+  }
+
+  private void scanForNewFiles()
+  {
+    Set<Path> newPaths = scanner.scan(fs, filePath, processedFiles);
+
+    for (Path newPath : newPaths) {
+      String newPathString = newPath.toString();
+      pendingFiles.add(newPathString);
+      processedFiles.add(newPathString);
+      localProcessedFileCount.increment();
     }
   }
 
